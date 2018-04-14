@@ -1,14 +1,11 @@
 from svg.path import parse_path
 from svg.path import Path, Line, Arc, CubicBezier, QuadraticBezier
-from collections import Iterable
 from xml.dom import minidom
 from rdp import rdp
-from svg_parser import rsvg_in_folderxy, rsvg_in_folders3
-from magenta.models.sketch_rnn import utils
+from svg_parser import rsvg_in_folder
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc
 import numpy as np
-import itertools
 import os
 import re
 import ipdb
@@ -17,15 +14,6 @@ import ipdb
 folder_p = '/home/kelvin/OgataLab/parse_svg/parse_svg/Sketchy_data_valid/airplane/'
 # file_n = 'n02691156_58-1.svg'
 # file1 = folder_p+file_n
-
-def flatten(lis):
-    
-    for i in lis:
-        if isinstance(i, Iterable) and not isinstance(i,basestring):
-            for j in flatten(i):
-                yield j
-        else:
-            yield i
 
 def w_wlines(all_path):
     orig = []
@@ -86,26 +74,14 @@ def wo_wlines(all_path):
     return line
 
 seq_l = []
-svg_data = rsvg_in_folderxy(folder_p,500)
-l = []
-for i in range(len(svg_data)):
-    l.append(utils.lines_to_strokes(svg_data[i]))
-
-my_dat = rsvg_in_folders3(folder_p,500)
-
-ipdb.set_trace()
-c=0
+svg_data = rsvg_in_folder(folder_p,500)
 
 # ipdb.set_trace()
-# for i in range(len(svg_data)):
-#     seq_l.append(len(svg_data[i]))
-#     if len(svg_data[i])<=250:
-#         c+=1
+for i in range(len(svg_data)):
+    seq_l.append(len(svg_data[i]))
 
-# seq_l.sort()
-# print('max seq.<=250 is '+str(c))
-# plt.hist(seq_l)    
-
+seq_l.sort()
+plt.hist(seq_l)    
 # ipdb.set_trace()
 # line = np.array(line)
 # ipdb.set_trace()
@@ -133,5 +109,4 @@ c=0
 #     leen = np.array(B[i])
 #     # ipdb.set_trace()
 #     ax2.plot(leen[:,0]*-1.0,leen[:,1]*-1.0)
-
 plt.show()

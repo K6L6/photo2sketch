@@ -1,39 +1,18 @@
 from svg.path import parse_path
 from svg.path import Path, Line, Arc, CubicBezier, QuadraticBezier
 from xml.dom import minidom
-from magenta.models.sketch_rnn import utils
 from rdp import rdp
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc
 import numpy as np
 import os
 import re
-import sys
 import ipdb
 
 folder_p = '/home/kelvin/OgataLab/parse_svg/parse_svg/Sketchy_data_valid/airplane/'
 dest_p = '/home/kelvin/OgataLab/magenta/magenta/models/sketch_rnn/sketchy_data/'
-# f_name = 'n02139199_15837-7.svg'
 
-def rsvg_in_folderxy(f_path, no_of_files):
-    '''reads all the svg files in from folder path, equal to the number of files specified. Then all path data in the svg files are converted into stroke-3 data and stored in a list'''
-    c=0
-    svg_data = []
-
-    for file in os.listdir(f_path):
-        
-        if file.endswith(".svg"):
-            # data = to_stroke3(svg2xyList(f_path + file))
-            data = svg2xyList(f_path + file)
-
-            if c<no_of_files:
-                svg_data.append(data)
-                c+=1
-            else:
-                break
-    return svg_data
-
-def rsvg_in_folders3(f_path, no_of_files):
+def rsvg_in_folder(f_path, no_of_files):
     '''reads all the svg files in from folder path, equal to the number of files specified. Then all path data in the svg files are converted into stroke-3 data and stored in a list'''
     c=0
     svg_data = []
@@ -69,13 +48,11 @@ def svg2xyList(file):
     ed_pts = []
     strt_pts1 = []
     ed_pts1 = []
-    # print(file)
+
     all_path = minidom.parse(file).getElementsByTagName('path')
-    # ipdb.set_trace()
     for i in range(len(all_path)):
         clr = all_path[i].getAttribute('stroke')
-        clr1 = all_path[i].getAttribute('STROKE')
-        if clr == '#000' or clr1 == '#000':
+        if clr == '#000':
             d = all_path[i].getAttribute('d')
             P = parse_path(d)
             points = []
@@ -100,7 +77,6 @@ def svg2xyList(file):
                     else:
                         print("What?! th is "+P[j])
 
-                # ipdb.set_trace()
                 # strt_pts1.append(points[0])
                 # ed_pts1.append(points[-1])
                 points = rdp(points, epsilon=2)
@@ -114,7 +90,6 @@ def svg2xyList(file):
                 # print(len(line))
         else:
             pass
-    # ipdb.set_trace()
     # print("start points: "+str(strt_pts1 == strt_pts))
     # print("end points: "+str(ed_pts1 == ed_pts))
     return line
@@ -143,12 +118,7 @@ def to_stroke3(data):
         pt[-1][-1]=1
         buf.append(pt)
     # ipdb.set_trace()
-    try:
-        res = np.concatenate(np.array(buf)).astype(np.float16)
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
-        raise
-    return res
+    return np.concatenate(np.array(buf)).astype(np.float16)
 
 def view_stroke3(data, axis):
     '''view stroke-3 data as an image'''
@@ -217,44 +187,6 @@ def svg_to_npz(f_path, t, v, tst, max_seq):
     np.savez_compressed(filename, train=train_data, valid=validation_data, test=test_data)
     print('conversion succeeded.')
 
-def svg_to_npz_w_utils(f_path, t, v, tst, max_seq):
-    '''converts a number of svg files into npz format. npz file will contain 3 sections, train, validation and test. test, validation, and test parameters should be input as integers, and total shouldn't be greater than existing files.'''
-    category = re.search('valid/(.+?)/', f_path).group(1)
-    train_data = []
-    validation_data = []
-    test_data = []
-
-    c=0    
-    # print(category)
-    for file in os.listdir(f_path):
-
-        if file.endswith(".svg"):
-            # print(file)
-            data = svg2xyList(f_path + file)
-            # print(file+' converted')
-            data = utils.lines_to_strokes(data)
-            
-            seq_len = len(data)
-            if seq_len>max_seq:
-                pass
-            else:
-                if c<t:
-                    train_data.append(data)
-                    c += 1
-                elif c >=t and c<(t+v):
-                    validation_data.append(data)
-                    c += 1
-                elif c>=(t+v) and c<(t+v+tst):
-                    test_data.append(data)
-                    c += 1
-                else:
-                    break
-    # ipdb.set_trace()
-    # filename = os.path.join(dest_p, 'sketchy_'+category+'_ep2.npz')
-    filename = os.path.join(dest_p, 'sketchy_'+category+'_wu_ep2.npz')
-    np.savez_compressed(filename, train=train_data, valid=validation_data, test=test_data)
-    print('conversion succeeded.')
-
 def view_xylist(data, axis):
     line = []
     # data = np.concatenate(np.array(data)).astype(np.float16)
@@ -265,14 +197,12 @@ def view_xylist(data, axis):
         line = []
 
 # check_max_seq(folder_p)
-svg_to_npz_w_utils(folder_p, 400, 50, 50, 250)
-# svg_to_npz(folder_p, 300, 50, 50, 250) #dataset less than 500
+# svg_to_npz(folder_p, 400, 50, 50, 250)
 
-# svg2xyList(folder_p+f_name)
-# svg_list = rsvg_in_folder(folder_p, 36)
-# # ipdb.set_trace()
+# svg_list = rsvg_in_folder(folder_p, 16)
+# ipdb.set_trace()
 # c = 0
-# row, col = 6, 6
+# row, col = 4, 4
 # gs = grdspc.GridSpec(row, col)
 
 # for i in range(row):
