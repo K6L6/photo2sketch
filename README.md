@@ -1,3 +1,5 @@
+These scripts will require the magenta environment because they use `utils` which is used in sketch-rnn.
+
 # svg_parser
 
 This contains several functions which were used mostly for reading svg files. 
