@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as grdspc
-from magenta.models.sketch_rnn import utils
+from sketch_rnn import utils
 from svg_parser import view_stroke3
 
 

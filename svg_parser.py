@@ -1,7 +1,7 @@
 from svg.path import parse_path
 from svg.path import Path, Line, Arc, CubicBezier, QuadraticBezier
 from xml.dom import minidom
-from magenta.models.sketch_rnn import utils
+from sketch_rnn import utils
 from rdp import rdp
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc

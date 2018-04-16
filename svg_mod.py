@@ -4,7 +4,7 @@ from collections import Iterable
 from xml.dom import minidom
 from rdp import rdp
 from svg_parser import rsvg_in_folderxy, rsvg_in_folders3
-from magenta.models.sketch_rnn import utils
+from sketch_rnn import utils
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc
 import numpy as np
