@@ -1,7 +1,7 @@
 from svg.path import parse_path
 from svg.path import Path, Line, Arc, CubicBezier, QuadraticBezier
 from xml.dom import minidom
-from sketch_rnn import utils
+from magenta.models.sketch_rnn import utils
 from rdp import rdp
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc
@@ -264,23 +264,45 @@ def view_xylist(data, axis):
         axis.plot(line[:,0],line[:,1]*-1.0)
         line = []
 
+def svg_mix(data):
+    fin_lis = []
+    c=0
+    for i in range(len(data)):        
+        # tmp_lis1 = data[i]
+        for j in range(len(data[i])):
+            # c+=1
+            # print(c)
+            tmp_lis = data[i]
+            lst = len(data[i])-1
+            tmp = [tmp_lis[x] for x in range(1,len(tmp_lis))]
+            tmp.append(tmp_lis[0])
+            data[i]=tmp
+            fin_lis.append(tmp)
+            tmp=[]
+    return fin_lis
+        
+data0 = rsvg_in_folderxy(folder_p,1)
+data1 = svg_mix(data0)
+# ipdb.set_trace()
+
+
 # check_max_seq(folder_p)
-svg_to_npz_w_utils(folder_p, 400, 50, 50, 250)
+# svg_to_npz_w_utils(folder_p, 400, 50, 50, 250)
 # svg_to_npz(folder_p, 300, 50, 50, 250) #dataset less than 500
 
 # svg2xyList(folder_p+f_name)
 # svg_list = rsvg_in_folder(folder_p, 36)
 # # ipdb.set_trace()
-# c = 0
-# row, col = 6, 6
-# gs = grdspc.GridSpec(row, col)
+c = 0
+row, col = 5, 2
+gs = grdspc.GridSpec(row, col)
 
-# for i in range(row):
-#     for j in range(col):    
-#         ax = plt.subplot(gs[i,j])
-#         view_xylist(svg_list[c], ax)
-#         ax.set_title(str(c+1))
-#         c+=1
+for i in range(row):
+    for j in range(col):    
+        ax = plt.subplot(gs[i,j])
+        view_xylist(data1[c], ax)
+        ax.set_title(str(c+1))
+        c+=1
 
 # for i in range(row):
 #     for j in range(col):    
@@ -289,5 +311,5 @@ svg_to_npz_w_utils(folder_p, 400, 50, 50, 250)
 #         ax.set_title(str(c+1))
 #         c+=1
 
-# plt.show()                
+plt.show()                
 # print(P)
