@@ -266,12 +266,9 @@ def view_xylist(data, axis):
 
 def svg_mix(data):
     fin_lis = []
-    c=0
     for i in range(len(data)):        
-        # tmp_lis1 = data[i]
+        
         for j in range(len(data[i])):
-            # c+=1
-            # print(c)
             tmp_lis = data[i]
             lst = len(data[i])-1
             tmp = [tmp_lis[x] for x in range(1,len(tmp_lis))]
@@ -279,10 +276,32 @@ def svg_mix(data):
             data[i]=tmp
             fin_lis.append(tmp)
             tmp=[]
+    
     return fin_lis
-        
-data0 = rsvg_in_folderxy(folder_p,1)
-data1 = svg_mix(data0)
+
+def svg_reverse(data):
+    fin_lis = []
+    for i in reversed(range(len(data))):
+        fin_lis.append(data[i])
+    
+    return fin_lis
+
+def exp_w_order(data0):
+    data1 = svg_mix(data0)
+    reverse_lis = []
+    for i in range(len(data0)):
+        inter_lis=svg_reverse(data0[i])
+        for j in range(len(inter_lis)):
+            inter = svg_reverse(inter_lis[j])
+            reverse_lis.append(inter)
+    reverse_lis=[reverse_lis]
+    data2 = svg_mix(reverse_lis)
+    data_ex = data1+data2
+    return data_ex    
+
+data0 = rsvg_in_folderxy(folder_p,2)
+data1 = exp_w_order(data0)
+
 # ipdb.set_trace()
 
 
@@ -294,7 +313,7 @@ data1 = svg_mix(data0)
 # svg_list = rsvg_in_folder(folder_p, 36)
 # # ipdb.set_trace()
 c = 0
-row, col = 5, 2
+row, col = 5, 4
 gs = grdspc.GridSpec(row, col)
 
 for i in range(row):
