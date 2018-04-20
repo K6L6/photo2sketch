@@ -34,6 +34,8 @@ The input arguments of both functions are the same:
 'tst' is an integer which refers to the number of files that should be contained under the label 'test'
 'max_seq' is the variable used to specify what the maximum sequence length of the data should be. For example: when max_seq=250, only data which have less than or equal to a maximum sequence length of 250 will be compressed in the .npz file.
 
+`svg_mix` used to create a list of sketch data with different order strokes.
+
 # npz_to_arr
 
 This script is simply used to read and check the format of data in a .npz file.
