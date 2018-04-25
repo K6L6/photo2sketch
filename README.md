@@ -25,7 +25,9 @@ There are two variables 'clr' and 'clr1' which is suppose to represent the color
 `view_xylist` is used to plot the list of x-y coordinates.
 
 There are 2 functions which convert .svg files into .npz, because it was used to check the difference between the function which converts x-y coordinate list into stroke-3 format.
+
 `svg_to_npz` is the function which uses the stroke-3 conversion in this script, `to_stroke3`.
+
 `svg_to_npz_ex` is the function which uses `exp_w_order` to increase data by changing the order of strokes and reverse direction.
 The input arguments of both functions are the same: 
 'f_path' refers to the folder path which contains .svg files. 
