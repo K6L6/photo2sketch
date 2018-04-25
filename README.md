@@ -16,7 +16,7 @@ no_of_files --> number of .svg files that you want to read from the specified fo
 `check_max_seq`, is used to check the maximum length of a sequence within a folder that contains .svg files.
 
 `svg2xyList`, is used to convert a single .svg file into a list of x-y coordinates which refer to the path. This function requires the path and name of the .svg file as an input.
-There are two variables 'clr' and 'clr1' which is suppose to represent the color of the lines. There are two because some .svg files specify the color attribute with 'STROKE' instead of 'stroke', and this capitalization caused the creation of an empty list.
+There are two variables 'clr' and 'clr1' which is suppose to represent the color of the lines. There are two because some .svg files specify the color attribute with 'STROKE' instead of 'stroke', and this capitalization caused the creation of an empty list. The parameter "epsilon" for rdp, used to vary the length of sequence is found in this function.
 
 `to_stroke3`, is used to convert a list of x-y coordinates into stroke-3 format. The input needs to be a nested list of x-y coordinates.
 
@@ -26,7 +26,7 @@ There are two variables 'clr' and 'clr1' which is suppose to represent the color
 
 There are 2 functions which convert .svg files into .npz, because it was used to check the difference between the function which converts x-y coordinate list into stroke-3 format.
 `svg_to_npz` is the function which uses the stroke-3 conversion in this script, `to_stroke3`.
-`svg_to_npz_w_utils` is the function which uses another function located in utils.py called `lines_to_strokes` to convert into stroke-3 format.
+`svg_to_npz_ex` is the function which uses `exp_w_order` to increase data by changing the order of strokes and reverse direction.
 The input arguments of both functions are the same: 
 'f_path' refers to the folder path which contains .svg files. 
 't' is an integer which refers to the number of files that should be contained under the label 'train'. 
@@ -34,9 +34,9 @@ The input arguments of both functions are the same:
 'tst' is an integer which refers to the number of files that should be contained under the label 'test'
 'max_seq' is the variable used to specify what the maximum sequence length of the data should be. For example: when max_seq=250, only data which have less than or equal to a maximum sequence length of 250 will be compressed in the .npz file.
 
-`svg_mix`, `svg_reverse` and `exp_w_order` works with `rsvg_in_folderxy` properly.
+`svg_mix`, `svg_reverse` and `exp_w_order` works with `svg2xyList` properly. Needs to be modified to work with `rsvg_in _forlderxy`.
 
-`svg_mix` used to create a list of sketch data with different order strokes. Takes input in the form of a nested list as produced by `rsvg_in_folderxy`.
+`svg_mix` used to create a list of sketch data with different order strokes. Takes input in the form of a nested list as produced by `svg2xyList`.
 
 `svg_reverse` used to reverse the coordinate points in a line, with list for input.
 
