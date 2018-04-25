@@ -15,7 +15,7 @@ folder_p = '/home/kelvin/OgataLab/parse_svg/parse_svg/Sketchy_data_valid/airplan
 dest_p = '/home/kelvin/OgataLab/magenta/magenta/models/sketch_rnn/sketchy_data/'
 # f_name = 'n02139199_15837-7.svg'
 
-def rsvg_in_folderxy(f_path, no_of_files, lim):
+def rsvg_in_folderxy(f_path, no_of_files):
     '''reads all the svg files in from folder path, equal to the number of files specified. Then all path data in the svg files are converted into stroke-3 data and stored in a list'''
     c=0
     svg_data = []
@@ -25,15 +25,11 @@ def rsvg_in_folderxy(f_path, no_of_files, lim):
         if file.endswith(".svg"):
             # data = to_stroke3(svg2xyList(f_path + file))
             data = svg2xyList(f_path + file)
-            check = to_stroke3(data)
-            if len(check)>lim:
-                pass
+            if c<no_of_files:
+                svg_data.append(data)
+                c+=1
             else:
-                if c<no_of_files:
-                    svg_data.append(data)
-                    c+=1
-                else:
-                    break
+                break
     return svg_data
 
 def rsvg_in_folders3(f_path, no_of_files):
