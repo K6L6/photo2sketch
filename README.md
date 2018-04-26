@@ -26,7 +26,7 @@ There are two variables 'clr' and 'clr1' which is suppose to represent the color
 
 There are 2 functions which convert .svg files into .npz, because it was used to check the difference between the function which converts x-y coordinate list into stroke-3 format.
 
-`svg_to_npz` is the function which uses the stroke-3 conversion in this script, `to_stroke3`.
+`svg_to_npz` is the function which uses the stroke-3 conversion in this script, `to_stroke3`. `arr_reduce` has been implemented in the current version of this function.
 
 `svg_to_npz_ex` is the function which uses `exp_w_order` to increase data by changing the order of strokes and reverse direction.
 The input arguments of both functions are the same: 
@@ -42,7 +42,9 @@ The input arguments of both functions are the same:
 
 `svg_reverse` used to reverse the coordinate points in a line, with list for input.
 
-`exp_w_order` meant to stand for expand with order. A function to expand svg data by changing order of strokes, and reversing strokes.
+`exp_w_order` meant to stand for expand with order. A function to expand svg data by changing order of strokes, and reversing strokes. The input for this function is a nested list in the form produced from `svg2xyList`.
+
+`arr_reduce` is used to reduce the sequence length of data in stroke-3 format. Input for the function is 'data' which refers to data in stroke-3 format and 'lim' which refers to the preferred sequence length of data.
 
 # npz_to_arr
 
