@@ -4,7 +4,8 @@ from collections import Iterable
 from xml.dom import minidom
 from rdp import rdp
 from svg_parser import rsvg_in_folderxy, rsvg_in_folders3
-from sketch_rnn import utils
+from itertools import groupby
+# from magenta.models.sketch_rnn import utils
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grdspc
 import numpy as np
@@ -86,26 +87,32 @@ def wo_wlines(all_path):
     return line
 
 seq_l = []
-svg_data = rsvg_in_folderxy(folder_p,500)
-l = []
-for i in range(len(svg_data)):
-    l.append(utils.lines_to_strokes(svg_data[i]))
+svg_data = rsvg_in_folders3(folder_p,100)
+# l = []
+# for i in range(len(svg_data)):
+#     l.append(utils.lines_to_strokes(svg_data[i]))
 
-my_dat = rsvg_in_folders3(folder_p,500)
+# my_dat = rsvg_in_folders3(folder_p,500)
 
-ipdb.set_trace()
+# ipdb.set_trace()
 c=0
 
 # ipdb.set_trace()
-# for i in range(len(svg_data)):
-#     seq_l.append(len(svg_data[i]))
-#     if len(svg_data[i])<=250:
-#         c+=1
+'''histogram generation'''
+for i in range(len(svg_data)):
+    seq_l.append(len(svg_data[i]))
+    if len(svg_data[i])<=100:
+        c+=1
 
-# seq_l.sort()
-# print('max seq.<=250 is '+str(c))
-# plt.hist(seq_l)    
+seq_l.sort()
+y_val = [len(list(group)) for key, group in groupby(seq_l)]
+seq_l1 = list(set(seq_l))
+print('max seq.<=100 is '+str(c))
+plt.xlabel("sequence length")
+# plt.hist(seq_l)
+plt.bar(seq_l1,y_val)    
 
+'''plotting multiple sequences script'''
 # ipdb.set_trace()
 # line = np.array(line)
 # ipdb.set_trace()
