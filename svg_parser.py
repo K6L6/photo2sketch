@@ -41,8 +41,9 @@ def rsvg_in_folders3(f_path, no_of_files):
         
         if file.endswith(".svg"):
             data = to_stroke3(svg2xyList(f_path + file))
+            # data = arr_reduce(data,100)
             # data = svg2xyList(f_path + file)
-
+            # ipdb.set_trace()
             if c<no_of_files:
                 svg_data.append(data)
                 c+=1
@@ -206,7 +207,6 @@ def svg_to_npz(f_path, t, v, tst, max_seq):
     train_data = []
     validation_data = []
     test_data = []
-    data1 = []
     c=0    
     # print(category)
     for file in os.listdir(f_path):
@@ -218,8 +218,8 @@ def svg_to_npz(f_path, t, v, tst, max_seq):
                 data1 = to_stroke3(data0)  # 2d matrix of stroke-3 format pic.
             except:
                 print('This freakin file-->'+file)
-            
-            seq_len = len(check)
+            data1 = arr_reduce(data1,100)
+            seq_len = len(data1)
             if seq_len>max_seq:
                 pass
             else:
@@ -249,6 +249,7 @@ def view_xylist(data, axis):
         line = []
 
 def svg_mix(data):
+    '''recursively changes the starting stroke of the sketch sequence'''
     fin_lis = []
     for i in range(len(data)):        
         tmp_lis = data
@@ -260,12 +261,14 @@ def svg_mix(data):
     return fin_lis
 
 def svg_reverse(data):
+    '''reverses direction of stroke'''
     fin_lis = []
     for i in reversed(range(len(data))):
         fin_lis.append(data[i])    
     return fin_lis
 
 def exp_w_order(data):
+    '''expands xy-coordinate data. Data produced from svg2xyList.'''
     data1 = svg_mix(data)
     reverse_lis = []
     for i in range(len(data)):
@@ -275,12 +278,21 @@ def exp_w_order(data):
     data_ex = data1+data2
     return data_ex    
 
+def arr_reduce(data, lim):
+    '''used to reduce length of sequence. 'lim' refers to preferred sequence length.'''
+    if len(data)>lim:
+        a = [x for x in range(lim,len(data))]
+        b = np.delete(data,a,0)
+    else:
+        b = data
+    return b
+
 # data0 = rsvg_in_folderxy(folder_p,500,250)
 
 # data1 = exp_w_order(data0)
 
 # svg_to_npz_ex(folder_p, 15000, 500, 500, 250)
-# svg_to_npz(folder_p, 400, 50, 50, 200) #dataset less than 500
+svg_to_npz(folder_p, 400, 50, 50, 100) #dataset less than 500
 
 # svg2xyList(folder_p+f_name)
 # svg_list = rsvg_in_folder(folder_p, 36)
