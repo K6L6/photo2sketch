@@ -56,4 +56,4 @@ This script was used to compare the difference between data which includes white
 `w_wlines` reads an svg file and converts all lines into a list.
 `wo_wlines` reads an svg file and converts only black lines into a list. It ignores white colored lines.
 `flatten` is used to flatten nested lists into a single list. This was mainly used to check whether the content between two nested lists was the same or not. It was used to check the difference between stroke-3 conversion in `svg_parser` and `utils`.
-Within this script is also lines which have been commented out but can be used to produce a histogram to show the distribution of sequence length of sketches.
+Within this script is also lines which have been commented out but can be used to produce a histogram to show the distribution of sequence length of sketches. Instead of a histogram, a bar graph can also be shown to see the exact values.
