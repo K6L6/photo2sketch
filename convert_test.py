@@ -1,49 +1,9 @@
-from svg_parser import svg2xyList, to_stroke3, arr_reduce
+from svg_parser import svg2xyList, to_stroke3, arr_reduce, view_stroke3, view_xylist
 import os
 import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import ipdb
-
-def plot_data_xy(data, ax):
-    """ plot sketch data as xy list (after svg2xyList() """    
-    for d in data:
-        d = np.array(d)
-        ax.plot(d[:, 0], d[:, 1] * -1)
-
-def plot_data_stroke3(data, ax):
-    """ plot sketch data as stroke-3 format """
-    X, Y, P = 0, 0, 0
-    
-    lines = []
-    for d in data:
-        _x, _y, _p = d
-        
-        # update X, Y by x, y
-        X += _x
-        Y += _y
-        
-        if P == 0 and _p == 0:
-            # draw
-            lines.append([X, Y])
-        elif P == 0 and _p == 1:
-            # pen lifts
-            lines.append([X, Y])
-            lines = np.array(lines)
-            ax.plot(lines[:, 0], lines[:, 1] * -1)
-            lines = []
-        elif P == 1 and _p == 0:
-            lines.append([X, Y])
-            # pen touches
-            pass
-        elif P == 1 and _p == 1:
-            # pen lifts, and moves
-            pass
-        else:
-            raise ValueError('invalid format of stroke-3 data')
-        
-        # update P
-        P = _p
 
 def convert_test(svg_filename):
     """ do tests of svg file conversion """
@@ -53,19 +13,21 @@ def convert_test(svg_filename):
     ax1 = fig.add_subplot(131)
 
     data_xy = svg2xyList(svg_filename)
-    plot_data_xy(data_xy, ax1)
+    view_xylist(data_xy, ax1)
 
     ax2 = fig.add_subplot(132)
     
     data_stroke3 = to_stroke3(data_xy)
-    print(data_stroke3)
-    plot_data_stroke3(data_stroke3, ax2)
+    view_stroke3(data_stroke3, ax2)
 
     ax3 = fig.add_subplot(133)
 
     data_stroke3_reduced = arr_reduce(data_stroke3, 100)
-    plot_data_stroke3(data_stroke3_reduced, ax3)
-    print(data_stroke3_reduced)
+    view_stroke3(data_stroke3_reduced, ax3)
+
+    vmin = data_stroke3_reduced.min()
+    vmax = data_stroke3_reduced.max()
+    print('min = ', vmin, ' max = ', vmax)
 
     plt.show()
         
@@ -107,7 +69,7 @@ def compare_with_google_dataset(sketch_filename, google_npz_dataset):
         data_xy = svg2xyList(f)
         data_stroke3 = to_stroke3(data_xy)
         data_stroke3_reduced = arr_reduce(data_stroke3, 100)
-        return data_stroke3_reduced    
+        return data_stroke3_reduced
 
     # load sketch-rnn's dataset
     dataset = np.load(google_npz_dataset, encoding='latin1')
@@ -127,38 +89,23 @@ def compare_with_google_dataset(sketch_filename, google_npz_dataset):
     fig = plt.figure()
 
     ax1 = fig.add_subplot(121)
-    plot_data_stroke3(convert_svg(sketch_filename), ax1)
-
-    ax2 = fig.add_subplot(132)
-    plot_data_stroke3(data_google, ax2)
-
-    plt.show()
-
-def convert_to_float16(svg_filename):
-    """ convert stroke-3 format data to float16, and check the plot result. """
-    print('test with ', svg_filename)
-    
-    fig = plt.figure()
-    ax1 = fig.add_subplot(121)
-
-    data_xy = svg2xyList(svg_filename)    
-    data_stroke3 = to_stroke3(data_xy)
-    plot_data_stroke3(data_stroke3, ax1)
+    view_stroke3(convert_svg(sketch_filename), ax1)
 
     ax2 = fig.add_subplot(122)
-    plot_data_stroke3(data_stroke3.astype(np.float16), ax2)
+    view_stroke3(data_google, ax2)
 
     plt.show()
+
 
 def run_tests():
     # the path of directory which has all the sketches from sketchy website.
     # http://sketchy.eye.gatech.edu/
-    sketchy_dataset_dir = '/Users/kazuma_sasaki/data/sketches/'
+    sketchy_dataset_dir = '/Users/kazuma/data/sketches/'
     print('sketchy_dataset_dir = ', sketchy_dataset_dir)
 
     # the path of google sketch-rnn's dataset
     # https://github.com/hardmaru/sketch-rnn-datasets/tree/master/aaron_sheep
-    google_npz_dataset = '/Users/kazuma_sasaki/data/aaron_sheep.npz'
+    google_npz_dataset = 'data/aaron_sheep.npz'
 
     # we focus on sketches of airplane.
     target_class = 'airplane'
@@ -168,10 +115,9 @@ def run_tests():
     if len(svg_filenames) == 0:
         raise RuntimeError("no svg file in {}".format(sketchy_dataset_dir))
     
-    # convert_test(svg_filenames[0])
+    convert_test(svg_filenames[0])
     # check_invalid_svg_files(svg_filenames)
     # compare_with_google_dataset(svg_filenames[0], google_npz_dataset)
-    convert_to_float16(svg_filenames[0])
 
 if __name__ == '__main__':
     print('run tests ...')

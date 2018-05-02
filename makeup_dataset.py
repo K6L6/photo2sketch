@@ -18,7 +18,7 @@ def convert_svgs(svg_dir, npz_filename, max_length=100, num_train=600, num_valid
         data_xy = svg2xyList(f)
         data_stroke3 = to_stroke3(data_xy)
         data_stroke3_reduced = arr_reduce(data_stroke3, max_length)
-        return data_stroke3_reduced.astype(np.float16)
+        return data_stroke3_reduced
 
     print('num of files = ', len(svg_filenames))
 
