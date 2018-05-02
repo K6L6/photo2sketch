@@ -24,7 +24,8 @@ import random
 import numpy as np
 import tensorflow as tf
 
-from magenta.models.sketch_rnn import rnn
+# from magenta.models.sketch_rnn import rnn
+import rnn
 
 
 def copy_hparams(hparams):
