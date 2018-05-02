@@ -132,7 +132,7 @@ def to_stroke3(data):
     try:
         res = np.concatenate(np.array(buf)).astype(np.float16)
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     return res
 
@@ -292,7 +292,7 @@ def arr_reduce(data, lim):
 # data1 = exp_w_order(data0)
 
 # svg_to_npz_ex(folder_p, 15000, 500, 500, 250)
-svg_to_npz(folder_p, 400, 50, 50, 100) #dataset less than 500
+# svg_to_npz(folder_p, 400, 50, 50, 100) #dataset less than 500
 
 # svg2xyList(folder_p+f_name)
 # svg_list = rsvg_in_folder(folder_p, 36)
