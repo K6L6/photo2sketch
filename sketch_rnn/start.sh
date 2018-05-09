@@ -2,7 +2,7 @@
 
 hps=""
 hps+="dataset=airplane.npz,"
-hps+="max_seq_len=100,"
+hps+="num_steps=100000,"
 hps+="dec_rnn_size=256,"
 hps+="dec_model=layer_norm,"
 hps+="enc_rnn_size=128,"
