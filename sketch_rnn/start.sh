@@ -1,7 +1,7 @@
 #!/bin/bash
 
 hps=""
-hps+="dataset=airplane.npz,"
+hps+="[dataset=airplane.npz],"
 hps+="num_steps=100000,"
 hps+="dec_rnn_size=256,"
 hps+="dec_model=layer_norm,"
@@ -13,4 +13,4 @@ hps+="batch_size=30,"
 log=log/airplane_1
 data=../data
 
-python sketch_rnn_train.py --log_root=$log --data_dir=$data $hps
+python sketch_rnn_train.py --log_root=$log --data_dir=$data --hparams=$hps
