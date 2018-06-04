@@ -203,13 +203,15 @@ class DataLoader(object):
                strokes,
                batch_size=100,
                max_seq_length=250,
-               scale_factor=1.0,
+               scale_factorx=4.0,
+               scale_factory=2.0,
                random_scale_factor=0.0,
                augment_stroke_prob=0.0,
                limit=1000):
     self.batch_size = batch_size  # minibatch size
     self.max_seq_length = max_seq_length  # N_max in sketch-rnn paper
-    self.scale_factor = scale_factor  # divide offsets by this factor
+    self.scale_factorx = scale_factorx  # divide offsets by this factor
+    self.scale_factory = scale_factory
     self.random_scale_factor = random_scale_factor  # data augmentation method
     # Removes large gaps in the data. x and y offsets are clamped to have
     # absolute value no greater than this limit.
@@ -234,7 +236,8 @@ class DataLoader(object):
         data = np.minimum(data, self.limit)
         data = np.maximum(data, -self.limit)
         data = np.array(data, dtype=np.float32)
-        data[:, 0:2] /= self.scale_factor
+        data[:, 0] /= self.scale_factorx
+        data[:, 1] /= self.scale_factory
         raw_data.append(data)
         seq_len.append(len(data))
     seq_len = np.array(seq_len)  # nstrokes for each sketch
