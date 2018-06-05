@@ -18,6 +18,7 @@ from __future__ import division
 from __future__ import print_function
 import random
 import numpy as np
+import ipdb
 
 
 def get_bounds(data, factor=10):
@@ -203,6 +204,7 @@ class DataLoader(object):
                strokes,
                batch_size=100,
                max_seq_length=250,
+               scale_factor=1.0,
                scale_factorx=0.25,
                scale_factory=0.5,
                random_scale_factor=0.0,
@@ -210,7 +212,8 @@ class DataLoader(object):
                limit=1000):
     self.batch_size = batch_size  # minibatch size
     self.max_seq_length = max_seq_length  # N_max in sketch-rnn paper
-    self.scale_factorx = scale_factorx  # divide offsets by this factor
+    self.scale_factor = scale_factor  # divide offsets by this factor
+    self.scale_factorx = scale_factorx  
     self.scale_factory = scale_factory
     self.random_scale_factor = random_scale_factor  # data augmentation method
     # Removes large gaps in the data. x and y offsets are clamped to have
@@ -246,6 +249,7 @@ class DataLoader(object):
     for i in range(len(seq_len)):
       self.strokes.append(raw_data[idx[i]])
     print("total images <= max_seq_len is %d" % count_data)
+    # ipdb.set_trace()
     self.num_batches = int(count_data / self.batch_size)
 
   def random_sample(self):
