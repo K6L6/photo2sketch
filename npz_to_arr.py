@@ -5,7 +5,7 @@ import sys
 # from magenta.models.sketch_rnn import utils
 from svg_parser import view_stroke3
 import ipdb
-sys.path.insert(0, './sketch-wmultiple-tags/sketch_rnn/test')
+sys.path.insert(0, './sketch_rnn/test')
 import sketch_rnn_train
 
 # ipdb.set_trace()
