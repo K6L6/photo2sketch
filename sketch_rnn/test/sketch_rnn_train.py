@@ -194,8 +194,8 @@ def load_dataset(data_dir, model_params, inference_mode=False):
       random_scale_factor=model_params.random_scale_factor,
       augment_stroke_prob=model_params.augment_stroke_prob)
 
-  # normalizing_scale_factor = train_set.calculate_normalizing_scale_factor()
-  normalizing_scale_factor = 83.3333
+  normalizing_scale_factor = train_set.calculate_normalizing_scale_factor()
+  # normalizing_scale_factor = 83.3333
   train_set.normalize(normalizing_scale_factor)
 
   valid_set = utils.DataLoader(
