@@ -205,8 +205,8 @@ class DataLoader(object):
                batch_size=100,
                max_seq_length=250,
                scale_factor=1.0,
-               scale_factorx=1.0,
-               scale_factory=1.0,
+               scale_factorx=0.25,
+               scale_factory=0.5,
                random_scale_factor=0.0,
                augment_stroke_prob=0.0,
                limit=1000):
