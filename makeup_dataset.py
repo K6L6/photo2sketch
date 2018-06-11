@@ -5,7 +5,7 @@ import numpy as np
 import ipdb
 import argparse
 
-def convert_svgs(svg_dir, npz_filename, max_length=100, num_train=400, num_valid=50):
+def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=400, num_valid=50):
     """ convert all the svg files in svg_dir. """
     print('convert svg files in ', svg_dir)
 

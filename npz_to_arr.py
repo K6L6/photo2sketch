@@ -12,7 +12,7 @@ import sketch_rnn_train
 
 file_dir='/home/kelvin/OgataLab/magenta/magenta/models/sketch_rnn/sketchy_data/'
 file1 = 'aaron_sheep.npz'
-file2 = 'sheep_ep3.npz'
+file2 = 'sheep250_ep3.npz'
 strk_dat1x = []
 strk_dat1y = []
 strk_dat2x = []
@@ -72,7 +72,7 @@ print("Aarony = "+str(min(strk_dat1y))+","+str(max(strk_dat1y)))
 print("sketchyy = "+str(min(strk_dat2y))+","+str(max(strk_dat2y)))
 
 data_dir = '/home/kelvin/OgataLab/magenta/magenta/models/sketch_rnn/sketchy_data/'
-model_dir = '/tmp/sketch_rnn/models/aaron_sheep/layer_norm/'
+model_dir = '/tmp/sketch_rnn/models/owl/lstm/'
 # model_dir = '/tmp/sketch_rnn/models/aaron_sheep/lstm/'
 [train_set, valid_set, test_set, hps_model, eval_hps_model, sample_hps_model] = sketch_rnn_train.load_env(data_dir, model_dir)
 
