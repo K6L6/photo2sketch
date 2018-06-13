@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import resnet_model
 import glob
 import ipdb
 import imageio
@@ -29,4 +30,6 @@ for i, f in enumerate(jpg_filenames):
         invalid_files.append(f)
 
 data=data.flatten()
-np.savetxt("owl.csv",data,delimiter=",")
+# np.savetxt("owl.csv",data,delimiter=",")
+inp = tf.reshape(data,[-1,256,256,1])
+ipdb.set_trace()
