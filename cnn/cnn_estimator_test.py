@@ -3,8 +3,11 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import argparse
+import csv
+import pandas as pd
 import os
 
+csv_dir = "/home/kelvin/OgataLab/sketch-wmultiple-tags/"
 parser = argparse.ArgumentParser(description="test")
 data_path = os.path.join(
     os.path.expanduser('~'),
@@ -19,17 +22,43 @@ parser.add_argument('--log_every', type=int, default=2, help='interval of loggin
 parser.add_argument('--summ_every', type=int, default=2, help='interval of recording summary per step')
 parser.add_argument('--model_dir', default='log/test', help='directory to put training log')
 
-def get_data_as_np(mnist):
-    train_x = mnist.train.images
-    train_y = mnist.train.labels
-    test_x = mnist.test.images
-    test_y = mnist.test.labels
+# def get_data_as_np(mnist):
+#     train_x = mnist.train.images
+#     train_y = mnist.train.labels
+#     test_x = mnist.test.images
+#     test_y = mnist.test.labels
+
+#     # reshape inputs to 4D array
+#     train_x = train_x.reshape(-1, 28, 28, 1)
+#     test_x = test_x.reshape(-1, 28, 28, 1)
+
+#     return train_x, train_y, test_x, test_y
+
+def get_data_as_np(csvX,csvY):
+    
+    train_x = []
+    train_y = []
+    test_x = []
+    test_y = []
+    with open(csvX,'rb') as cx:
+        rd = csv.reader(cx,delimiter=',')
+        for row in rd:
+            train_x.append(map(float,row))
+    
+    with open(csvY,'rb') as cy:
+        rd = csv.reader(cy,delimiter=',')
+        for row in rd:
+            train_y.append(map(float,row))
+    
+    train_x = tf.reshape(train_x,[-1,256,256,3])
+    train_y = tf.reshape(train_y,[-1,128])
+    # a = pd.read_csv(csvX,sep=',',dtype=np.int16,header=None)    
 
     # reshape inputs to 4D array
-    train_x = train_x.reshape(-1, 28, 28, 1)
-    test_x = test_x.reshape(-1, 28, 28, 1)
+    # train_x = train_x.reshape(-1, 28, 28, 1)
+    # test_x = test_x.reshape(-1, 28, 28, 1)
 
-    return train_x, train_y, test_x, test_y
+    return train_x, train_y
 
 def model_fn(features, labels, mode, params):
     """ define my model """
@@ -98,8 +127,10 @@ def main(argv):
     # maybe download mnist data
     # data is numpy.arrays
     # we use only input data because the model is auto-encoder
-    train_x, train_y, test_x, test_y = get_data_as_np(
-        input_data.read_data_sets(args.data_path, one_hot=True))
+    # train_x, train_y, test_x, test_y = get_data_as_np(
+    #     input_data.read_data_sets(args.data_path, one_hot=True))
+
+    train_x, train_y= get_data_as_np(csv_dir+"owl_im.csv",csv_dir+"owl_z.csv")
 
     # define type of input data
     my_feature_columns = [tf.feature_column.numeric_column(

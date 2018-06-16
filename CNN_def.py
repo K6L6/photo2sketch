@@ -4,6 +4,7 @@ import resnet_model
 import glob
 import ipdb
 import imageio
+import csv
 from scipy import misc
 
 # batch_size=-1
@@ -24,15 +25,18 @@ images = []
 for i, f in enumerate(jpg_filenames):
     try:
         data = conv_jpg(f)
+        data = data.flatten()
         images.append(data)
     except Exception as exp:
         print(f, exp)
         invalid_files.append(f)
-
-data=data.flatten()
-# np.savetxt("owl.csv",data,delimiter=",")
-inp = tf.reshape(data,[-1,256,256,1])
 ipdb.set_trace()
+with open("owl_im.csv","w+") as my_csv:
+  csvw = csv.writer(my_csv,delimiter=',')
+  csvw.writerows(images)
+# np.savetxt("owl.csv",data,delimiter=",")
+# inp = tf.reshape(images,[-1,256,256,1])
+# ipdb.set_trace()
 
 def input_fn(is_training, data_dir, batch_size, num_epochs=1, num_gpus=None):
     
