@@ -29,7 +29,7 @@ model_feat_extract = Model(
 img_arr = glob.glob(d_dir+'/*.jpg')
 x_list = []
 for i in range(len(img_arr)):
-    x_list.append(image.load_img(img_arr[i],target_size=(256,256)))
+    x_list.append(image.load_img(img_arr[i],target_size=(224,224)))
 
 # x = image.img_to_array(img)
 x=[]
