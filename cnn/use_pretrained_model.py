@@ -1,6 +1,7 @@
 import numpy as np
 import glob
 import ipdb
+import csv
 from keras.applications.mobilenetv2 import MobileNetV2
 from keras.applications.mobilenetv2 import preprocess_input, decode_predictions
 from keras.preprocessing import image
@@ -53,3 +54,11 @@ preds = model_feat_extract.predict(x)
 
 print(type(preds))
 print(preds.shape)
+predz=[]
+for i in range(len(preds)):
+    predz.append(np.ndarray.flatten(preds[i]))
+predz = np.asarray(predz)
+
+with open("photo_z.csv","w+") as _csv:
+    csvw = csv.writer(_csv, delimiter=',')
+    csvw.writerows(predz)
