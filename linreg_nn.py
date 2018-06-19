@@ -6,6 +6,10 @@ import csv
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
 
+STEPS = 3  # number of training batch-iteration
+BATCH_SIZE = 5
+LR = 0.0001  # learning rate
+
 def csv_parse(f):
     data = []
     with open(f,'rb') as cf:
@@ -14,67 +18,89 @@ def csv_parse(f):
             data.append(map(float,row))
     return np.asarray(data)
 
-x_raw = csv_parse(photo_vec)
-targets = csv_parse(sketch_vec)
-dataset = []
-for i in range(len(x_raw)):
-    dataset.append((x_raw[i],targets[i]))
+    x_raw = csv_parse(photo_vec)
+    targets = csv_parse(sketch_vec)
+    dataset = []
+    for i in range(len(x_raw)):
+        dataset.append((x_raw[i],targets[i]))
 
-# dataset = np.asarray(dataset) 
+    # dataset = np.asarray(dataset) 
 
-def linreg_fn(x,y,mode,params):
-    inp = tf.feature_column.input_layer(x, params["feature_columns"])
+def linreg_fn(features, labels, mode, params):
+    """ defines forward prop, loss, summary ops, and train_op. """
+
+    inp = features['x']
 
     for units in params.get("hidden_units",[20]):
         inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu)
     
-    out_layer = tf.layers.dense(inputs=inp,units=1)
+    preds = tf.layers.dense(inputs=inp, units=128)
 
-    preds = tf.squeeze(out_layer,1)
+    avg_loss = tf.losses.mean_squared_error(labels, preds)
+
+    batch_size = tf.shape(labels)[0]
+    total_loss = tf.to_float(batch_size) * avg_loss
 
     if mode == tf.estimator.ModeKeys.PREDICT:
-        return tf.estimator.EstimatorSpec(mode=mode, predictions={"sketch_vector":preds})
-    
-    avg_loss = tf.losses.mean_squared_error(y,preds)
+        return tf.estimator.EstimatorSpec(mode=mode, predictions={"sketch_vector": preds})
 
-    batch_size = tf.shape(y)[0]
-    total_loss = tf.to_float(batch_size)*avg_loss
+    if mode == tf.estimator.ModeKeys.EVAL:
+        eval_metrics = {"rmse": avg_loss}
+        return tf.estimator.EstimatorSpec(mode=mode,loss=total_loss,eval_metric_ops=eval_metrics)
+    
+    # error if it is not train mode
+    assert mode == tf.estimator.ModeKeys.TRAIN
 
-    if mode == tf.estimator.ModeKeys.TRAIN:
-        optimizer = params.get("optimizer",tf.trian.AdamOptimizer)
-        optimizer = optimizer(params.get("learning_rate",None))
-        trian_op = optimizer.minimize(loss=avg_loss,global_step=tf.train.get_global_step())
+    optimizer = tf.train.AdamOptimizer(params.get("learning_rate", None))
+    train_op = optimizer.minimize(loss=avg_loss, global_step=tf.train.get_global_step())
 
-        return tf.estimator.EstimatorSpec(mode=mode,loss=total_loss,trian_op=train_op)
+    return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss, train_op=train_op)
     
-    rmse = tf.metrics.root_mean_squared_error(y, preds)
-    
-    eval_metrics = {"rmse": rmse}
-    
-    return tf.estimator.EstimatorSpec(mode=mode,loss=total_loss,eval_metric_ops=eval_metrics)
+def get_fake_dataset():
+    """ create fake input and target data. """
+    input_data_shape = [7, 7, 160]
+    target_data_shape = [128]
+    num_data = 10  # size of data
+
+    x = np.random.random([num_data] + input_data_shape).reshape(num_data, 7 * 7 * 160)
+    t = np.random.random([num_data] + target_data_shape)
+    return x, t
 
 def main(arg):
     """build & train"""
-    assert len(arg) == 1
     
-    (train) = dataset
-    
-    # def norm(x,y):
-    #     return x,y
+    # generate fake dataset as numpy arrys.
+    # TODO: this should be replaced by csv_parse()
+    inputs, targets = get_fake_dataset()
 
-    # train = train.map(norm)
+    # input_fn to feed the data to an estimator
+    train_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={'x': inputs},
+        y=targets,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_epochs=1
+    )
 
-    def inp_train():
-        return(train.shuffle(1000).batch(50).repeat().make_one_shot_iterator().get_next())
+    # define type and shape of the input data
+    my_feature_columns = [tf.feature_column.numeric_column(
+        key="x",
+        shape=[7 * 7 * 160]
+    )]    
 
-    feature_columns = [tf.feature_column.numeric_column(key="x")]
+    # create a linear regression model
+    model = tf.estimator.Estimator(
+        model_fn=linreg_fn,
+        params={
+            'feature_columns': my_feature_columns,
+            'learning_rate': LR
+        },
+    )
 
-    model = tf.estimator.Estimator(model_fn=linreg_fn, params={"feature_columns":feature_columns, "learning_rate":0.001,"optimizer":tf.train.AdamOptimizer,"hidden_units":[20,20]})
-
-    model.train(input_fn=inp_train, steps=STEPS)
-    # linreg_fn(x,y,mode = tf.estimator.ModeKeys.TRAIN,params={"learning_rate":0.001,"optimizer":tf.train.AdamOptimizer,"hidden_units":[20,20]})
-
-    print("\n"+80*"*")
+    # start the training
+    model.train(
+        input_fn=train_input_fn,
+        steps=STEPS)
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
