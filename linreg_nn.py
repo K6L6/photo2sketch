@@ -59,10 +59,10 @@ def main(arg):
     
     (train) = dataset
     
-    def norm(x,y):
-        return x,y
+    # def norm(x,y):
+    #     return x,y
 
-    train = train.map(norm)
+    # train = train.map(norm)
 
     def inp_train():
         return(train.shuffle(1000).batch(50).repeat().make_one_shot_iterator().get_next())
