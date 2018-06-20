@@ -77,7 +77,7 @@ def main(arg):
     # TODO: this should be replaced by csv_parse()
     # inputs, targets = get_fake_dataset()
     inputs, targets = x_raw, targ
-
+    
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={'x': inputs},
@@ -94,10 +94,10 @@ def main(arg):
     )]    
 
     my_config = tf.estimator.RunConfig(
-        model_dir=model_dir,save_summary_steps=20,
+        model_dir=model_dir,save_summary_steps=50,
         save_checkpoints_steps=50,
         keep_checkpoint_max=None,
-        log_step_count_steps=50
+        log_step_count_steps=50,
         )
 
     # create a linear regression model
