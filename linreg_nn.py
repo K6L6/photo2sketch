@@ -7,7 +7,7 @@ sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
 model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/"
 
-STEPS = 500  # number of training batch-iteration
+STEPS = 100000  # number of training batch-iteration
 BATCH_SIZE = 5
 LR = 0.0001  # learning rate
 
@@ -39,6 +39,9 @@ def linreg_fn(features, labels, mode, params):
 
     avg_loss = tf.losses.mean_squared_error(labels, preds)
 
+    # summaries to be shown in tensorboard
+    tf.summary.scalar('train_loss', avg_loss)
+
     batch_size = tf.shape(labels)[0]
     total_loss = tf.to_float(batch_size) * avg_loss
 
@@ -54,7 +57,7 @@ def linreg_fn(features, labels, mode, params):
 
     optimizer = tf.train.AdamOptimizer(params.get("learning_rate", None))
     train_op = optimizer.minimize(loss=avg_loss, global_step=tf.train.get_global_step())
-
+    
     return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss, train_op=train_op)
     
 def get_fake_dataset():
@@ -90,18 +93,21 @@ def main(arg):
         shape=[7 * 7 * 160]
     )]    
 
+    my_config = tf.estimator.RunConfig(
+        model_dir=model_dir,save_summary_steps=20,
+        save_checkpoints_steps=50,
+        keep_checkpoint_max=None,
+        log_step_count_steps=50
+        )
+
     # create a linear regression model
     model = tf.estimator.Estimator(
         model_fn=linreg_fn,
-        model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/",
-        config=tf.estimator.RunConfig(model_dir=model_dir,save_summary_steps=20,
-                                    save_checkpoints_steps=50,
-                                    keep_checkpoint_max=0,
-                                    log_step_count_steps=50),
         params={
             'feature_columns': my_feature_columns,
             'learning_rate': LR
         },
+        config=my_config
     )
     
     # start the training
