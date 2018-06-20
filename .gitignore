@@ -1,7 +1,7 @@
-
 # Created by https://www.gitignore.io/api/vim,macos,linux,python,visualstudiocode
 /data/
 /sketch_rnn/log/
+/linreg_log/
 
 ### Linux ###
 *~
