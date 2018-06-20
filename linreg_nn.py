@@ -5,8 +5,9 @@ import csv
 
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
+model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/"
 
-STEPS = 3  # number of training batch-iteration
+STEPS = 500  # number of training batch-iteration
 BATCH_SIZE = 5
 LR = 0.0001  # learning rate
 
@@ -18,11 +19,11 @@ def csv_parse(f):
             data.append(map(float,row))
     return np.asarray(data)
 
-    x_raw = csv_parse(photo_vec)
-    targets = csv_parse(sketch_vec)
-    dataset = []
-    for i in range(len(x_raw)):
-        dataset.append((x_raw[i],targets[i]))
+x_raw = csv_parse(photo_vec)
+targ = csv_parse(sketch_vec)
+# dataset = []
+# for i in range(len(x_raw)):
+#     dataset.append((x_raw[i],targets[i]))
 
     # dataset = np.asarray(dataset) 
 
@@ -71,7 +72,8 @@ def main(arg):
     
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    inputs, targets = get_fake_dataset()
+    # inputs, targets = get_fake_dataset()
+    inputs, targets = x_raw, targ
 
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -91,12 +93,17 @@ def main(arg):
     # create a linear regression model
     model = tf.estimator.Estimator(
         model_fn=linreg_fn,
+        model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/",
+        config=tf.estimator.RunConfig(model_dir=model_dir,save_summary_steps=20,
+                                    save_checkpoints_steps=50,
+                                    keep_checkpoint_max=0,
+                                    log_step_count_steps=50),
         params={
             'feature_columns': my_feature_columns,
             'learning_rate': LR
         },
     )
-
+    
     # start the training
     model.train(
         input_fn=train_input_fn,
