@@ -5,9 +5,10 @@ import csv
 
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
-model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/"
+# model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/"
+model_dir = "./linreg_log/test"
 
-STEPS = 100000  # number of training batch-iteration
+STEPS = 100  # number of training batch-iteration
 BATCH_SIZE = 5
 LR = 0.0001  # learning rate
 
@@ -19,8 +20,8 @@ def csv_parse(f):
             data.append(map(float,row))
     return np.asarray(data)
 
-x_raw = csv_parse(photo_vec)
-targ = csv_parse(sketch_vec)
+# x_raw = csv_parse(photo_vec)
+# targ = csv_parse(sketch_vec)
 # dataset = []
 # for i in range(len(x_raw)):
 #     dataset.append((x_raw[i],targets[i]))
@@ -73,10 +74,13 @@ def get_fake_dataset():
 def main(arg):
     """build & train"""
     
+    # create a model_dir
+    tf.gfile.MakeDirs(model_dir)
+
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    # inputs, targets = get_fake_dataset()
-    inputs, targets = x_raw, targ
+    inputs, targets = get_fake_dataset()
+    # inputs, targets = x_raw, targ
     
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -84,7 +88,7 @@ def main(arg):
         y=targets,
         batch_size=BATCH_SIZE,
         shuffle=True,
-        num_epochs=1
+        num_epochs=None
     )
 
     # define type and shape of the input data
@@ -94,7 +98,8 @@ def main(arg):
     )]    
 
     my_config = tf.estimator.RunConfig(
-        model_dir=model_dir,save_summary_steps=50,
+        model_dir=model_dir,
+        save_summary_steps=10,
         save_checkpoints_steps=50,
         keep_checkpoint_max=None,
         log_step_count_steps=50,
