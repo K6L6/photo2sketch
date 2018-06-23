@@ -1,18 +1,22 @@
 import tensorflow as tf
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import numpy as np
 import ipdb
 import csv
+from sketch_dec import SketchRNNDecoder
+from draw_utils import plot_stroke
 
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/test1"
+MODEL_DIR = "./linreg_log/test"
 
-STEPS = 10  # number of training batch-iteration
+STEPS = 100000  # number of training batch-iteration
 BATCH_SIZE = 5
 LR = 0.0001  # learning rate
-SAVE_SUMMARY_STEPS = 5
-SAVE_CHECKPOINTS_STEPS = 5
-LOG_STEP_COUNT_STEPS = 5
+SAVE_SUMMARY_STEPS = 100
+SAVE_CHECKPOINTS_STEPS = 100
+LOG_STEP_COUNT_STEPS = 1000
 
 # train or generate
 MODE = 'generate'
@@ -84,8 +88,8 @@ def train(arg):
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    inputs, targets = get_fake_dataset()
-    # inputs, targets = get_csv_dataset()
+    # inputs, targets = get_fake_dataset()
+    inputs, targets = get_csv_dataset()
     
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -135,8 +139,8 @@ def gen(arg):
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    inputs, targets = get_fake_dataset()
-    # inputs, targets = get_csv_dataset()
+    # inputs, targets = get_fake_dataset()
+    inputs, targets = get_csv_dataset()
 
     # define type and shape of the input data
     my_feature_columns = [tf.feature_column.numeric_column(
@@ -164,11 +168,31 @@ def gen(arg):
     )
     preds = model.predict(input_fn=pred_input_fn)
 
-    for pred in preds:
-        # pred['sketch_vector'] is numpy.array
-        print(pred['sketch_vector'].shape)
+    # for pred in preds:
+    #     # pred['sketch_vector'] is numpy.array
+    #     print(pred['sketch_vector'].shape)
+    
+    # ipdb.set_trace()
+    decoder = SketchRNNDecoder("/tmp/sketch_rnn/models/owl/lstm_test/")
+    strokes = []
+    # for pred in preds:
+    #     strokes.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
 
+    inp, targ = get_csv_dataset()
+    # ipdb.set_trace()
+    for i in range(len(targ)):
+        strokes.append(decoder.draw_from_z(np.expand_dims(targ[i],0)))
+    
+    fig = plt.figure()
+    gs = gridspec.GridSpec(2, 5)
+    c=0
+    for i in range(2):
+        for j in range(5):
+            ax = fig.add_subplot(gs[i, j])
+            plot_stroke(ax, strokes[c])
+            c+=1
 
+    plt.show()
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
