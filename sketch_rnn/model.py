@@ -25,8 +25,9 @@ import numpy as np
 import tensorflow as tf
 
 # from magenta.models.sketch_rnn import rnn
-import rnn
+from . import rnn
 
+import ipdb
 
 def copy_hparams(hparams):
   """Return a copy of an HParams instance."""
@@ -72,7 +73,7 @@ def get_default_hparams():
 class Model(object):
   """Define a SketchRNN model."""
 
-  def __init__(self, hps, gpu_mode=True, reuse=False):
+  def __init__(self, hps, gpu_mode=True, reuse=False, vae_decode_mode=False):
     """Initializer for the SketchRNN model.
 
     Args:
@@ -81,6 +82,8 @@ class Model(object):
        reuse: a boolean that when true, attemps to reuse variables.
     """
     self.hps = hps
+    self.vae_decode_mode = vae_decode_mode
+
     with tf.variable_scope('vector_rnn', reuse=reuse):
       if not gpu_mode:
         with tf.device('/cpu:0'):
@@ -210,6 +213,10 @@ class Model(object):
       eps = tf.random_normal(
           (self.hps.batch_size, self.hps.z_size), 0.0, 1.0, dtype=tf.float32)
       self.batch_z = self.mean + tf.multiply(self.sigma, eps)
+
+      if self.vae_decode_mode:
+        self.batch_z = tf.placeholder(tf.float32, self.batch_z.get_shape, name='z_in')
+
       # KL cost
       self.kl_cost = -0.5 * tf.reduce_mean(
           (1 + self.presig - tf.square(self.mean) - tf.exp(self.presig)))

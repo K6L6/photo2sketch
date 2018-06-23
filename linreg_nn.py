@@ -5,28 +5,18 @@ import csv
 
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
-# model_dir="/home/kelvin/OgataLab/sketch-wmultiple-tags/linreg_log/"
-model_dir = "./linreg_log/test1"
+MODEL_DIR = "./linreg_log/test1"
 
-STEPS = 1000000  # number of training batch-iteration
+STEPS = 10  # number of training batch-iteration
 BATCH_SIZE = 5
 LR = 0.0001  # learning rate
+SAVE_SUMMARY_STEPS = 5
+SAVE_CHECKPOINTS_STEPS = 5
+LOG_STEP_COUNT_STEPS = 5
 
-def csv_parse(f):
-    data = []
-    with open(f,'rb') as cf:
-        rd = csv.reader(cf, delimiter = ',')
-        for row in rd:
-            data.append(map(float,row))
-    return np.asarray(data)
+# train or generate
+MODE = 'generate'
 
-x_raw = csv_parse(photo_vec)
-targ = csv_parse(sketch_vec)
-# dataset = []
-# for i in range(len(x_raw)):
-#     dataset.append((x_raw[i],targets[i]))
-
-    # dataset = np.asarray(dataset) 
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
@@ -38,6 +28,11 @@ def linreg_fn(features, labels, mode, params):
     
     preds = tf.layers.dense(inputs=inp, units=128, name="predictions")
 
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        assignment_map = {}
+        tf.train.init_from_checkpoint(MODEL_DIR, assignment_map)
+        return tf.estimator.EstimatorSpec(mode=mode, predictions={"sketch_vector": preds})
+
     avg_loss = tf.losses.mean_squared_error(labels, preds)
 
     # summaries to be shown in tensorboard
@@ -45,9 +40,6 @@ def linreg_fn(features, labels, mode, params):
 
     batch_size = tf.shape(labels)[0]
     total_loss = tf.to_float(batch_size) * avg_loss
-
-    if mode == tf.estimator.ModeKeys.PREDICT:
-        return tf.estimator.EstimatorSpec(mode=mode, predictions={"sketch_vector": preds})
 
     if mode == tf.estimator.ModeKeys.EVAL:
         eval_metrics = {"rmse": avg_loss}
@@ -71,16 +63,29 @@ def get_fake_dataset():
     t = np.random.random([num_data] + target_data_shape)
     return x, t
 
-def main(arg):
+def get_csv_dataset():
+    def csv_parse(f):
+        data = []
+        with open(f,'rb') as cf:
+            rd = csv.reader(cf, delimiter = ',')
+            for row in rd:
+                data.append(map(float,row))
+        return np.asarray(data)
+
+    x_raw = csv_parse(photo_vec)
+    targ = csv_parse(sketch_vec)
+    return x_raw, targ
+
+def train(arg):
     """build & train"""
     
     # create a model_dir
-    tf.gfile.MakeDirs(model_dir)
+    tf.gfile.MakeDirs(MODEL_DIR)
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    # inputs, targets = get_fake_dataset()
-    inputs, targets = x_raw, targ
+    inputs, targets = get_fake_dataset()
+    # inputs, targets = get_csv_dataset()
     
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -98,11 +103,11 @@ def main(arg):
     )]    
 
     my_config = tf.estimator.RunConfig(
-        model_dir=model_dir,
-        save_summary_steps=50,
-        save_checkpoints_steps=100,
+        model_dir=MODEL_DIR,
+        save_summary_steps=SAVE_SUMMARY_STEPS,
+        save_checkpoints_steps=SAVE_CHECKPOINTS_STEPS,
         keep_checkpoint_max=None,
-        log_step_count_steps=50,
+        log_step_count_steps=LOG_STEP_COUNT_STEPS,
         )
 
     # create a linear regression model
@@ -120,6 +125,55 @@ def main(arg):
         input_fn=train_input_fn,
         steps=STEPS)
 
+def gen(arg):
+    """
+    Load trained weight of linreg and sketch-rnn decoder, and 
+    generate sketch results.
+    """
+    # put a log text
+    tf.logging.info("generation mode.")
+
+    # generate fake dataset as numpy arrys.
+    # TODO: this should be replaced by csv_parse()
+    inputs, targets = get_fake_dataset()
+    # inputs, targets = get_csv_dataset()
+
+    # define type and shape of the input data
+    my_feature_columns = [tf.feature_column.numeric_column(
+        key="x",
+        shape=[7 * 7 * 160]
+    )]    
+
+    my_config = tf.estimator.RunConfig(model_dir=MODEL_DIR)
+
+    # create a linear regression model
+    model = tf.estimator.Estimator(
+        model_fn=linreg_fn,
+        params={
+            'feature_columns': my_feature_columns,
+        },
+        config=my_config
+    )
+
+    pred_input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={'x': inputs},
+        y=targets,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        num_epochs=1
+    )
+    preds = model.predict(input_fn=pred_input_fn)
+
+    for pred in preds:
+        # pred['sketch_vector'] is numpy.array
+        print(pred['sketch_vector'].shape)
+
+
+
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
-    tf.app.run(main=main)
+
+    if MODE == 'train':
+        tf.app.run(main=train)
+    elif MODE == 'generate':
+        tf.app.run(main=gen)
