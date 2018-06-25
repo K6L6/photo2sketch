@@ -9,18 +9,17 @@ from draw_utils import plot_stroke
 
 sketch_vec = "owl_z.csv"    #shape 100,128
 photo_vec = "photo_z.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/test"
+MODEL_DIR = "./linreg_log/test2"
 
-STEPS = 100000  # number of training batch-iteration
-BATCH_SIZE = 5
+STEPS = 1000000  # number of training batch-iteration
+BATCH_SIZE = 25
 LR = 0.0001  # learning rate
 SAVE_SUMMARY_STEPS = 100
 SAVE_CHECKPOINTS_STEPS = 100
 LOG_STEP_COUNT_STEPS = 1000
 
 # train or generate
-MODE = 'generate'
-
+MODE = 'train'
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
