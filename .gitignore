@@ -2,6 +2,7 @@
 /data/
 /sketch_rnn/log/
 /linreg_log/
+/rendered_256x256/
 
 ### Linux ###
 *~
