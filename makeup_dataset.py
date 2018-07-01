@@ -22,7 +22,6 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '793-4.svg',
     '894-2.svg',
     '1258-1.svg',
-    '1507-9.svg',
     '1565-5.svg',
     '1627-7.svg',
     '1635-2.svg',
@@ -30,7 +29,6 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '2025-1.svg',
     '2379-5.svg',
     '2580-2.svg',
-    '2733-1.svg',
     '2756-9.svg',
     '2769-6.svg',
     '3311-2.svg',
@@ -48,7 +46,6 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '5781-5.svg',
     '5967-4.svg',
     '6178-2.svg',
-    '6390-5.svg',
     '6410-9.svg',
     '6976-2.svg',
     '7028-5.svg',
@@ -65,7 +62,6 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '9124-9.svg',
     '9312-3.svg',
     '10213-7.svg',
-    '10233-3.svg',
     '10236-2.svg',
     '10347-5.svg',
     '10564-5.svg',
@@ -99,7 +95,6 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '15585-4.svg',
     '15624-2.svg',
     '15919-1.svg',
-    '16219-7.svg',
     '16309-4.svg',
     '16335-5.svg',
     '17160-2.svg',
@@ -112,7 +107,12 @@ def convert_svgs(svg_dir, npz_filename, max_length=174, num_train=100, num_valid
     '18695-1.svg',
     '18877-5.svg',
     '19895-3.svg',
-    '23229-4.svg'
+    '23229-4.svg',
+    '1507-9.svg',
+    '2733-1.svg',
+    '6390-5.svg',
+    '10233-3.svg',
+    '16219-7.svg'
     ]
 
     for i in range(len(_svg)):

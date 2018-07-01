@@ -7,19 +7,19 @@ import csv
 from sketch_dec import SketchRNNDecoder
 from draw_utils import plot_stroke
 
-sketch_vec = "owl_z.csv"    #shape 100,128
-photo_vec = "photo_z.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/test2"
+sketch_vec = "owl_z_tt.csv"    #shape 100,128
+photo_vec = "photo_z_tt.csv"   # shape 100,7,7,160
+MODEL_DIR = "./linreg_log/test7"
 
-STEPS = 1000000  # number of training batch-iteration
-BATCH_SIZE = 25
+STEPS = 100000  # number of training batch-iteration
+BATCH_SIZE = 20
 LR = 0.0001  # learning rate
 SAVE_SUMMARY_STEPS = 100
 SAVE_CHECKPOINTS_STEPS = 100
 LOG_STEP_COUNT_STEPS = 1000
 
 # train or generate
-MODE = 'train'
+MODE = 'generate'
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
@@ -66,18 +66,25 @@ def get_fake_dataset():
     t = np.random.random([num_data] + target_data_shape)
     return x, t
 
-def get_csv_dataset():
-    def csv_parse(f):
-        data = []
-        with open(f,'rb') as cf:
-            rd = csv.reader(cf, delimiter = ',')
-            for row in rd:
-                data.append(map(float,row))
-        return np.asarray(data)
+def csv_parse(f):
+    data = []
+    with open(f,'rb') as cf:
+        rd = csv.reader(cf, delimiter = ',')
+        for row in rd:
+            data.append(map(float,row))
+    return np.asarray(data)
 
+def get_csv_dataset():
     x_raw = csv_parse(photo_vec)
     targ = csv_parse(sketch_vec)
     return x_raw, targ
+
+def get_pseuinv(arr):
+    for i in range(len(arr)):
+        x=arr[i]
+        arr[i] = np.transpose(x)*(np.power(np.matmul(x,np.transpose(x)),-1))
+        # arr[i]=np.linalg.pinv([x])
+    return arr
 
 def train(arg):
     """build & train"""
@@ -88,8 +95,12 @@ def train(arg):
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
     # inputs, targets = get_fake_dataset()
-    inputs, targets = get_csv_dataset()
     
+    inputs, targets = get_csv_dataset()
+    inputs = inputs[:-5]
+    targets = targets[:-5]
+    # inputs = get_pseuinv(inputs) #obtain pseudo inverse of input
+
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
         x={'x': inputs},
@@ -138,8 +149,11 @@ def gen(arg):
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    # inputs, targets = get_fake_dataset()
-    inputs, targets = get_csv_dataset()
+    inputs, targets = get_fake_dataset()
+    # inputs, targets = get_csv_dataset()
+    # test_in = inputs[-5:]
+    # test_tar = targets[-5:]
+    # inputs,targets = test_in, test_tar
 
     # define type and shape of the input data
     my_feature_columns = [tf.feature_column.numeric_column(
@@ -173,19 +187,33 @@ def gen(arg):
     
     # ipdb.set_trace()
     decoder = SketchRNNDecoder("/tmp/sketch_rnn/models/owl/lstm_test/")
+    
+    """Reconstruction for direct input case"""
     strokes = []
+    for pred in preds:
+        strokes.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
+    
+    """Reconstruction for pseudo inverse case"""
+    # vec = []
     # for pred in preds:
-    #     strokes.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
+    #     vec.append(pred['sketch_vector'])    
+    # vec=get_pseuinv(vec)
+    # # ipdb.set_trace()
+    # for i in range(len(vec)):
+    #     strokes.append(decoder.draw_from_z(np.expand_dims(vec[i],0)))
 
-    inp, targ = get_csv_dataset()
+    """Reconstruction for target data"""
+    strokes_tar = []
+    # inp, targ = get_csv_dataset()
     # ipdb.set_trace()
-    for i in range(len(targ)):
-        strokes.append(decoder.draw_from_z(np.expand_dims(targ[i],0)))
+    for i in range(len(targets)):
+        strokes_tar.append(decoder.draw_from_z(np.expand_dims(targets[i],0)))
     
     fig = plt.figure()
     gs = gridspec.GridSpec(2, 5)
     c=0
-    for i in range(2):
+    
+    for i in range(1):
         for j in range(5):
             ax = fig.add_subplot(gs[i, j])
             plot_stroke(ax, strokes[c])
@@ -200,3 +228,4 @@ if __name__ == "__main__":
         tf.app.run(main=train)
     elif MODE == 'generate':
         tf.app.run(main=gen)
+    
