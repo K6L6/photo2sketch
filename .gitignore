@@ -46,10 +46,11 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-###pictures & csv###
+###Miscellanious###
 .jpg
 .png
 .csv
+.npz
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
