@@ -9,7 +9,7 @@ from draw_utils import plot_stroke
 
 sketch_vec = "owl_z_tt.csv"    #shape 100,128
 photo_vec = "photo_z_tt.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/test7"
+MODEL_DIR = "./linreg_log/duo_set/DEFAULT/"
 
 STEPS = 100000  # number of training batch-iteration
 BATCH_SIZE = 20
@@ -19,7 +19,7 @@ SAVE_CHECKPOINTS_STEPS = 100
 LOG_STEP_COUNT_STEPS = 1000
 
 # train or generate
-MODE = 'generate'
+MODE = 'train'
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
@@ -86,6 +86,31 @@ def get_pseuinv(arr):
         # arr[i]=np.linalg.pinv([x])
     return arr
 
+"""load from npz""" #separate
+# npz_dir = "./dataset/"
+# pig = np.load(npz_dir+"pig.npz")
+# elephant = np.load(npz_dir+"elephant.npz")
+
+# # train
+# train_input = np.append(elephant['train_photo'],pig['train_photo'],0)
+# train_target = np.append(elephant['train_sketch'],pig['train_sketch'],0)
+
+# # test
+# test_input = np.append(elephant['test_photo'],pig['test_photo'],0)
+# test_target = np.append(elephant['test_sketch'],pig['test_sketch'],0) 
+
+"""load from npz""" #combined
+npz_dir = "./dataset/"
+elepig = np.load(npz_dir+"elephantpig.npz")
+
+# train
+train_input = elepig['train_photo']
+train_target = elepig['train_sketch']
+
+# test
+test_input = elepig['test_photo']
+test_target = elepig['test_sketch']
+
 def train(arg):
     """build & train"""
     
@@ -94,12 +119,13 @@ def train(arg):
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    # inputs, targets = get_fake_dataset()
+    # inputs, targets = get_fake_dataset() #random data
     
-    inputs, targets = get_csv_dataset()
-    inputs = inputs[:-5]
-    targets = targets[:-5]
+    # inputs, targets = get_csv_dataset() #from csv
+    # inputs = inputs[:-5]
+    # targets = targets[:-5]
     # inputs = get_pseuinv(inputs) #obtain pseudo inverse of input
+    inputs, targets = train_input, train_target #from npz
 
     # input_fn to feed the data to an estimator
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -149,12 +175,13 @@ def gen(arg):
 
     # generate fake dataset as numpy arrys.
     # TODO: this should be replaced by csv_parse()
-    inputs, targets = get_fake_dataset()
-    # inputs, targets = get_csv_dataset()
+    # inputs, targets = get_fake_dataset() #random data
+    # inputs, targets = get_csv_dataset()# from csv
     # test_in = inputs[-5:]
     # test_tar = targets[-5:]
     # inputs,targets = test_in, test_tar
-
+    inputs, targets = test_input, test_target #from npz
+    # ipdb.set_trace()
     # define type and shape of the input data
     my_feature_columns = [tf.feature_column.numeric_column(
         key="x",
@@ -186,7 +213,9 @@ def gen(arg):
     #     print(pred['sketch_vector'].shape)
     
     # ipdb.set_trace()
-    decoder = SketchRNNDecoder("/tmp/sketch_rnn/models/owl/lstm_test/")
+    # decoder = SketchRNNDecoder("/tmp/sketch_rnn/models/owl/lstm_test/")
+    decoder = SketchRNNDecoder("/home/kelvin/sketchrnn_pretrained/elephantpig/lstm_test/")
+
     
     """Reconstruction for direct input case"""
     strokes = []
@@ -210,14 +239,20 @@ def gen(arg):
         strokes_tar.append(decoder.draw_from_z(np.expand_dims(targets[i],0)))
     
     fig = plt.figure()
-    gs = gridspec.GridSpec(2, 5)
-    c=0
+    N = 9
+    gs = gridspec.GridSpec(2, N)
     
-    for i in range(1):
-        for j in range(5):
-            ax = fig.add_subplot(gs[i, j])
-            plot_stroke(ax, strokes[c])
-            c+=1
+    for n in range(N):
+        ax = fig.add_subplot(gs[0, n])
+        plot_stroke(ax, strokes[n])
+        ax = fig.add_subplot(gs[1, n])
+        plot_stroke(ax, strokes_tar[n])
+
+    # for i in range(1):
+    #     for j in range(5):
+    #         ax = fig.add_subplot(gs[i, j])
+    #         plot_stroke(ax, strokes[c])
+    #         c+=1
 
     plt.show()
 
@@ -228,4 +263,5 @@ if __name__ == "__main__":
         tf.app.run(main=train)
     elif MODE == 'generate':
         tf.app.run(main=gen)
-    
+
+#DEFAULT PARAMS: batch 20, epoch 100000, LR 0.0001    

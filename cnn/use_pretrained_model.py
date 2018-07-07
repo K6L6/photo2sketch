@@ -2,14 +2,15 @@ import numpy as np
 import glob
 import ipdb
 import csv
+import re
 from os import listdir
 from keras.applications.mobilenetv2 import MobileNetV2
 from keras.applications.mobilenetv2 import preprocess_input, decode_predictions
 from keras.preprocessing import image
 from keras.models import Model
 
-d_dir = "/home/kelvin/OgataLab/sketch-wmultiple-tags/rendered_256x256/256x256/photo/tx_000000000000/owl/"
-
+# d_dir = "/home/kelvin/OgataLab/sketch-wmultiple-tags/rendered_256x256/256x256/photo/tx_000000000000/owl/"
+d_dir = "/home/kelvin/OgataLab/sketch-wmultiple-tags/photos/pig/"
 test_dir = "./test_p"
 # define pre-trained model.
 # for the other models, see https://keras.io/ja/applications/ .
@@ -44,12 +45,8 @@ model_feat_extract = Model(
 # x = preprocess_input(x)
 
 '''Multi image'''
-# img_arr = glob.glob(d_dir+'/*.jpg')
-# img_arr = sorted(img_arr)
-img_n = list(range(1,101))
-img_arr = []
-for i in range(len(img_n)):
-    img_arr.append(d_dir+str(img_n[i])+'.jpg')
+img_arr = glob.glob(d_dir+'/*.jpg')
+img_arr = sorted(img_arr, key=lambda x: int(re.search(r'(?<=_)\w+', x).group()))
 
 # ipdb.set_trace()
 x_list = []
@@ -74,6 +71,6 @@ for i in range(len(preds)):
     predz.append(np.ndarray.flatten(preds[i]))
 predz = np.asarray(predz)
 
-with open("photo_z_tt.csv","w+") as _csv:
+with open("pig_photo_z.csv","w+") as _csv:
     csvw = csv.writer(_csv, delimiter=',')
     csvw.writerows(predz)

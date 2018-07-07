@@ -68,7 +68,7 @@ def check_max_seq(f_path):
     seq_len = []
     for file in os.listdir(f_path):
         if file.endswith(".svg"):
-            N = to_stroke3(svg2xyList(folder_p+file))
+            N = to_stroke3(svg2xyList(f_path+file))
             seq_len.append((len(N),file))
     # ipdb.set_trace()
     return sorted(seq_len,key=lambda k:k[0])
