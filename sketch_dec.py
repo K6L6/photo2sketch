@@ -72,7 +72,7 @@ class SketchRNNDecoder(object):
             self.model, 
             seq_len=self.seq_len_plot, 
             z=z, 
-            temperature=0.1)
+            temperature=0.5)
         return to_normal_strokes(strokes)
 
     def get_z_size(self):

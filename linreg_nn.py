@@ -9,11 +9,11 @@ from draw_utils import plot_stroke
 
 sketch_vec = "owl_z_tt.csv"    #shape 100,128
 photo_vec = "photo_z_tt.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/duo_set/DEFAULT/"
+MODEL_DIR = "./linreg_log/duo_set/b20l1-e5E500k-3L20010050/"
 
-STEPS = 100000  # number of training batch-iteration
+STEPS = 500000  # number of training batch-iteration
 BATCH_SIZE = 20
-LR = 0.0001  # learning rate
+LR = 0.00001  # learning rate
 SAVE_SUMMARY_STEPS = 100
 SAVE_CHECKPOINTS_STEPS = 100
 LOG_STEP_COUNT_STEPS = 1000
@@ -23,12 +23,14 @@ MODE = 'train'
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
-
+    # input
     inp = features['x']
-
-    for units in params.get("hidden_units",[20]):
-        inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu,name="feat_input")
-    
+    # defines hidden layers?
+    for units in params.get('hidden_units',[200,100,50]):
+        inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu)
+        # inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.sigmoid)
+        inp = tf.layers.dropout(inp)
+    # predictions
     preds = tf.layers.dense(inputs=inp, units=128, name="predictions")
 
     if mode == tf.estimator.ModeKeys.PREDICT:
@@ -52,6 +54,8 @@ def linreg_fn(features, labels, mode, params):
     assert mode == tf.estimator.ModeKeys.TRAIN
 
     optimizer = tf.train.AdamOptimizer(params.get("learning_rate", None))
+    # optimizer = tf.train.FtrlOptimizer(params.get("learning_rate", None))
+
     train_op = optimizer.minimize(loss=avg_loss, global_step=tf.train.get_global_step())
     
     return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss, train_op=train_op)
@@ -106,7 +110,7 @@ elepig = np.load(npz_dir+"elephantpig.npz")
 # train
 train_input = elepig['train_photo']
 train_target = elepig['train_sketch']
-
+# ipdb.set_trace()
 # test
 test_input = elepig['test_photo']
 test_target = elepig['test_sketch']
@@ -155,7 +159,8 @@ def train(arg):
         model_fn=linreg_fn,
         params={
             'feature_columns': my_feature_columns,
-            'learning_rate': LR
+            'learning_rate': LR,
+            # 'hidden_units':[200,100,50],
         },
         config=my_config
     )
