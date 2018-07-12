@@ -64,15 +64,20 @@ class SketchRNNDecoder(object):
         # restore the trained weight of a sketch-rnn from log_dir.
         self.restore(self.log_dir)
 
-    def draw_from_z(self, z=None, temperature=0.1):
+    def draw_from_z(self, z=None, temperature=0.1, greedy_mode=False):
         """ get stroke-3 format drawing sequence from z as a numpy arrray. 
             Note that the size of z is given by get_z_size().
+            args:
+            z: numpy array. an input latent vector. If z = None, a random value will be used.
+            temperature: float. randomness to take one from the predicted component.
+            greedy_mode: bool. if true, the rnn always takes the componenet that has the biggest mixture ratio.
         """
         strokes, mixture_params = sample(self.sess, 
             self.model, 
             seq_len=self.seq_len_plot, 
             z=z, 
-            temperature=0.5)
+            temperature=temperature,
+            greedy_mode=greedy_mode)
         return to_normal_strokes(strokes)
 
     def get_z_size(self):
