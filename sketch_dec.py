@@ -5,18 +5,21 @@ import sys
 import os
 import argparse
 import json
+from itertools import chain
 
 from sketch_rnn.model import Model, sample
 from sketch_rnn.utils import to_normal_strokes
-from draw_utils import plot_stroke
+from draw_utils import plot_stroke, to_abs, init_ax
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
 # Argument parser to specify log_dir by the arguments.
 parser = argparse.ArgumentParser(description="sketch-rnn decoder test")
+parser.add_argument('plot_mode', type=str, help='Mode to show decode results. movie or plot.')
 parser.add_argument('log_dir', type=str, help='Log directory of sketch-rnn')
 parser.add_argument('--gpu_mode', type=bool, default=False, help='Using gpu or not.')
+parser.add_argument('--savename', type=str, help='name of the figure. if None, the default name will be used.')
 
 class SketchRNNDecoder(object):
     """ Helper class to acquire sketch-rnn's decoder outputs from z as numpy.array. 
@@ -109,6 +112,73 @@ def sketch_rnn_decode(argv):
     """ test of SketchRNNDecoder. """
     # # parser arguments
     args = parser.parse_args(argv[1:])
+
+    if args.plot_mode == 'plot':
+        plot(args)
+    elif args.plot_mode == 'movie':
+        movie(args)
+    else:
+        raise ValueError('plot_mode should be plot or movie')
+
+
+def movie(args):
+    import matplotlib.animation as anim
+
+    # init decoder
+    decoder = SketchRNNDecoder(args.log_dir, args.gpu_mode)
+
+    # get a drawing sequence, and convert stroke-3 format data to list of x-y
+    s = decoder.draw_from_z()
+    x, y = to_abs(s)
+
+    # initialize figure
+    fig = plt.figure(figsize=(10, 5))
+    fig.suptitle('Generated Sequence')
+
+    # plot a stroke sequence as movie and static plot
+    ax = fig.add_subplot(121)
+    plot_stroke(ax, s)
+
+    # axes for the movie
+    ax = fig.add_subplot(122)
+    init_ax(ax, x, y)
+
+    # get flagments to finish a line or not
+    def get_p(abs_x):
+        t = 0
+        res = []
+        for _x in x:
+            t += len(_x)
+            res.append(t)
+        return res
+
+    p = get_p(x)
+
+    # flatten lists
+    x = list(chain.from_iterable(x))
+    y = list(chain.from_iterable(y))
+
+    # define a frame func to update the figure at each step
+    def frame(t):
+        if not t + 1 in p:
+            ax.plot([x[t], x[t+1]], [y[t], y[t+1]], color='black', lw=2.0)
+    
+    # create an animation using the defined frame func.
+    # interval means an time interval between frames in milli-seconds
+    ani = anim.FuncAnimation(fig, frame, interval=75, frames=len(x) - 1)
+
+    # set a filename
+    if args.savename is None:
+        filename = 'seq_random_z.gif'
+
+    # gif file output requires imagemagick.
+    # mp4 requires ffmpeg.
+    ani.save(filename, writer='imagemagick')
+
+    # show the created movie.
+    plt.show()
+
+def plot(args):
 
     # init decoder
     decoder = SketchRNNDecoder(args.log_dir, args.gpu_mode)
