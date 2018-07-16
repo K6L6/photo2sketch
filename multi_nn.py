@@ -26,10 +26,10 @@ def linreg_fn(features, labels, mode, params):
     # input
     inp = features['x']
     # defines hidden layers?
-    for units in params.get('hidden_units',[20]):
+    for units in params.get('hidden_units',[200,100,50]):
         inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu)
         # inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.sigmoid)
-        # inp = tf.layers.dropout(inp)
+        inp = tf.layers.dropout(inp)
     # predictions
     preds = tf.layers.dense(inputs=inp, units=128, name="predictions")
 

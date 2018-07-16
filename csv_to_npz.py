@@ -4,8 +4,8 @@ import csv
 import ipdb
 
 csv_dir = "/home/kelvin/OgataLab/sketch-wmultiple-tags/dataset/"
-sketch_csv = "pig_z_tt.csv"
-photo_csv = "pig_photo_z.csv"
+sketch_csv = "owl_z_tt.csv"
+photo_csv = "owl_photo_z.csv"
 
 npz_dir = "./dataset/"
 do = "convert"
@@ -23,14 +23,13 @@ def convert_csv(npz_filename):
     photo_vec = csv_parse(csv_dir+photo_csv)
     
     # photo data
-    test_set_p = photo_vec[0:4]
-    train_set_p = np.delete(photo_vec, slice(0,4), 0)
+    test_set_p = photo_vec[95:]
+    train_set_p = np.delete(photo_vec, slice(95,100), 0)
     
     # sketch data
-    test_set_s = sketch_vec[0:4]
-    train_set_s = np.delete(sketch_vec, slice(0,4), 0)
+    test_set_s = sketch_vec[95:]
+    train_set_s = np.delete(sketch_vec, slice(95,100), 0)
     
-    ipdb.set_trace()
     np.savez_compressed(
             npz_filename,
             train_photo = train_set_p,

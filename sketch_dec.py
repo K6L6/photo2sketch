@@ -64,7 +64,7 @@ class SketchRNNDecoder(object):
         # restore the trained weight of a sketch-rnn from log_dir.
         self.restore(self.log_dir)
 
-    def draw_from_z(self, z=None, temperature=0.1, greedy_mode=False):
+    def draw_from_z(self, z=None, temperature=0.2, greedy_mode=False):
         """ get stroke-3 format drawing sequence from z as a numpy arrray. 
             Note that the size of z is given by get_z_size().
             args:
