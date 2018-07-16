@@ -8,7 +8,7 @@ def get_colors(n, cmap='cool'):
     idx = np.linspace(0.0, 1.0, n)
     return cmap(idx)
 
-def to_abs(data, factor=0.2):
+def to_abs(data, factor):
     abs_x, abs_y = 0, 0
 
     x, y = [], []
@@ -19,14 +19,14 @@ def to_abs(data, factor=0.2):
         abs_y += float(data[i, 1]) / factor
         lift_pen = data[i, 2]
 
-        x.append(abs_x)
-        y.append(abs_y * -1.)
-
         if lift_pen == 1:
             r_x.append(x)
             r_y.append(y)
             x, y = [], []
-            
+        else:
+            x.append(abs_x)
+            y.append(abs_y * -1.)
+
     return r_x, r_y
 
 def get_max_lim(min_x, max_x, min_y, max_y, margin=0.1):
@@ -59,19 +59,6 @@ def get_min_max(x):
     _x = list(chain.from_iterable(x))
     return min(_x), max(_x)
 
-def init_ax(ax, x, y):
-    min_x, max_x = get_min_max(x)
-    min_y, max_y = get_min_max(y)
-    
-    min_x, max_x, min_y, max_y = get_max_lim(
-            min_x, max_x, min_y, max_y)
-    
-    ax.set_aspect('equal')
-    ax.set_xlim(min_x, max_x)
-    ax.set_ylim(min_y, max_y)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
 def plot_stroke(ax, data, factor=0.2, lw=2.0):
     x, y = to_abs(data, factor) 
     if len(x) == 0 or len(y) == 0:
@@ -83,6 +70,16 @@ def plot_stroke(ax, data, factor=0.2, lw=2.0):
     for _x, _y, color in zip(x, y, colors):
         ax.plot(_x, _y, color=color, lw=lw)
 
-    init_ax(ax, x, y)
+    min_x, max_x = get_min_max(x)
+    min_y, max_y = get_min_max(y)
+    
+    min_x, max_x, min_y, max_y = get_max_lim(
+            min_x, max_x, min_y, max_y)
+    
+    ax.set_aspect('equal')
+    ax.set_xlim(min_x, max_x)
+    ax.set_ylim(min_y, max_y)
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 
