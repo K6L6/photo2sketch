@@ -4,22 +4,26 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import ipdb
 import csv
-from sketch_dec import SketchRNNDecoder
-from draw_utils import plot_stroke
+from sketch_dec import SketchRNNDecoder,movie
+from draw_utils import plot_stroke, to_abs, init_ax
+from sklearn import decomposition
+from itertools import chain
 
-sketch_vec = "owl_z_tt.csv"    #shape 100,128
-photo_vec = "photo_z_tt.csv"   # shape 100,7,7,160
-MODEL_DIR = "./linreg_log/duo_set/b20l1-e5E100k-3L20010050/"
+# sketch_vec = "owl_z_tt.csv"    #shape 100,128
+# photo_vec = "photo_z_tt.csv"   # shape 100,7,7,160
+# MODEL_DIR = "./linreg_log/owl-3L/b20l1e-4E100k/"
+MODEL_DIR = "./linreg_log/duo_set/DEFAULT/"
+
 
 STEPS = 100000  # number of training batch-iteration
 BATCH_SIZE = 20
-LR = 0.00001  # learning rate
+LR = 0.0001  # learning rate
 SAVE_SUMMARY_STEPS = 100
 SAVE_CHECKPOINTS_STEPS = 100
 LOG_STEP_COUNT_STEPS = 1000
 
 # train or generate
-MODE = 'train'
+MODE = 'generate'
 
 def linreg_fn(features, labels, mode, params):
     """ defines forward prop, loss, summary ops, and train_op. """
@@ -27,7 +31,7 @@ def linreg_fn(features, labels, mode, params):
     inp = features['x']
     # defines hidden layers?
     for units in params.get('hidden_units',[20]):
-        inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu)
+        inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.relu, name='feat_input')
         # inp = tf.layers.dense(inputs=inp,units=units, activation=tf.nn.sigmoid)
         # inp = tf.layers.dropout(inp)
     # predictions
@@ -83,25 +87,19 @@ def get_csv_dataset():
     targ = csv_parse(sketch_vec)
     return x_raw, targ
 
-def get_pseuinv(arr):
-    for i in range(len(arr)):
-        x=arr[i]
-        arr[i] = np.transpose(x)*(np.power(np.matmul(x,np.transpose(x)),-1))
-        # arr[i]=np.linalg.pinv([x])
-    return arr
+def vis_clusters(inputs,targets):
+    
+    x, y = inputs, targets
 
-"""load from npz""" #separate
-# npz_dir = "./dataset/"
-# pig = np.load(npz_dir+"pig.npz")
-# elephant = np.load(npz_dir+"elephant.npz")
+    pca = decomposition.PCA(n_components=2)
+    pca.fit(x)
+    x = pca.transform(x)
+    colors = ['turquoise','darkorange']
 
-# # train
-# train_input = np.append(elephant['train_photo'],pig['train_photo'],0)
-# train_target = np.append(elephant['train_sketch'],pig['train_sketch'],0)
 
-# # test
-# test_input = np.append(elephant['test_photo'],pig['test_photo'],0)
-# test_target = np.append(elephant['test_sketch'],pig['test_sketch'],0) 
+    plt.scatter(x[:95,0],x[:95,1],c='turquoise')
+    plt.scatter(x[95:,0],x[95:,1],c='darkorange')
+    plt.show()
 
 """load from npz""" #combined
 npz_dir = "./dataset/"
@@ -110,10 +108,22 @@ elepig = np.load(npz_dir+"elephantpig.npz")
 # train
 train_input = elepig['train_photo']
 train_target = elepig['train_sketch']
-# ipdb.set_trace()
+
 # test
 test_input = elepig['test_photo']
 test_target = elepig['test_sketch']
+
+# """load from owl.npz""" #combined
+# npz_dir = "./dataset/"
+# owl = np.load(npz_dir+"owl.npz")
+
+# # train
+# train_input = owl['train_photo']
+# train_target = owl['train_sketch']
+
+# # test
+# test_input = owl['test_photo']
+# test_target = owl['test_sketch']
 
 def train(arg):
     """build & train"""
@@ -160,7 +170,6 @@ def train(arg):
         params={
             'feature_columns': my_feature_columns,
             'learning_rate': LR,
-            # 'hidden_units':[200,100,50],
         },
         config=my_config
     )
@@ -185,7 +194,7 @@ def gen(arg):
     # test_in = inputs[-5:]
     # test_tar = targets[-5:]
     # inputs,targets = test_in, test_tar
-    inputs, targets = test_input, test_target #from npz
+    inputs, targets = train_input, train_target #from npz
     # ipdb.set_trace()
     # define type and shape of the input data
     my_feature_columns = [tf.feature_column.numeric_column(
@@ -218,48 +227,111 @@ def gen(arg):
     #     print(pred['sketch_vector'].shape)
     
     # ipdb.set_trace()
-    # decoder = SketchRNNDecoder("/tmp/sketch_rnn/models/owl/lstm_test/")
-    decoder = SketchRNNDecoder("/home/kelvin/sketchrnn_pretrained/elephantpig/lstm_test/")
+    # decoder = SketchRNNDecoder("/home/kelvin/OgataLab/sketchrnn_pretrained/owl/lstm_test/")
+    decoder = SketchRNNDecoder("/home/kelvin/OgataLab/sketchrnn_pretrained/elephantpig/lstm_test/")
 
     
     """Reconstruction for direct input case"""
-    strokes = []
-    for pred in preds:
-        strokes.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
-    
-    """Reconstruction for pseudo inverse case"""
-    # vec = []
-    # for pred in preds:
-    #     vec.append(pred['sketch_vector'])    
-    # vec=get_pseuinv(vec)
-    # # ipdb.set_trace()
-    # for i in range(len(vec)):
-    #     strokes.append(decoder.draw_from_z(np.expand_dims(vec[i],0)))
 
-    """Reconstruction for target data"""
-    strokes_tar = []
-    # inp, targ = get_csv_dataset()
-    # ipdb.set_trace()
+    import matplotlib.animation as anim
+
+    # init decoder
+    # decoder = SketchRNNDecoder(args.log_dir, args.gpu_mode)
+    targ_s = []
     for i in range(len(targets)):
-        strokes_tar.append(decoder.draw_from_z(np.expand_dims(targets[i],0)))
+        targ_s.append(decoder.draw_from_z(np.expand_dims(targets[i],0)))
     
-    fig = plt.figure()
-    N = 9
-    gs = gridspec.GridSpec(2, N)
+    # # get a drawing sequence, and convert stroke-3 format data to list of x-y
+    # s = []
+    # for pred in preds:
+    #     s.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
+    cluster_data=list(preds)
+    # for i in preds:
+    #     cluster_data.append(i['sketch_vector'])
+    ipdb.set_trace()
+
+    def sav2gif(sketch_arr, f_name):
+        x, y = to_abs(sketch_arr)
+
+        # initialize figure
+        fig = plt.figure(figsize=(10, 5))
+        fig.suptitle('Generated Sequence')
+
+        # plot a stroke sequence as movie and static plot
+        ax = fig.add_subplot(121)
+        plot_stroke(ax, sketch_arr)
+
+        # axes for the movie
+        ax = fig.add_subplot(122)
+        init_ax(ax, x, y)
+
+        # get flagments to finish a line or not
+        def get_p(abs_x):
+            t = 0
+            res = []
+            for _x in x:
+                t += len(_x)
+                res.append(t)
+            return res
+
+        p = get_p(x)
+
+        # flatten lists
+        x = list(chain.from_iterable(x))
+        y = list(chain.from_iterable(y))
+
+        # define a frame func to update the figure at each step
+        def frame(t):
+            if not t + 1 in p:
+                ax.plot([x[t], x[t+1]], [y[t], y[t+1]], color='black', lw=2.0)
+        
+        # create an animation using the defined frame func.
+        # interval means an time interval between frames in milli-seconds
+        ani = anim.FuncAnimation(fig, frame, interval=75, frames=len(x) - 1)
+
+        # set a filename
+        filename = f_name
+
+        # gif file output requires imagemagick.
+        # mp4 requires ffmpeg.
+        ani.save(filename, writer='imagemagick')
+
+        # show the created movie.
+        plt.show()
+    # ipdb.set_trace()
+    vis_clusters(cluster_data,targets)
+    # sav2gif(targ_s[102], '1lay_trntargelepig103_z.gif')
+    # sav2gif(s[102], '1lay_trnpredelepig103_z.gif')
+
+    # strokes = []
+    # for pred in preds:
+    #     # ipdb.set_trace()
+    #     strokes.append(decoder.draw_from_z(np.expand_dims(pred['sketch_vector'],0)))
+
+    # # """Reconstruction for target data"""
+    # strokes_tar = []
     
-    for n in range(N):
-        ax = fig.add_subplot(gs[0, n])
-        plot_stroke(ax, strokes[n])
-        ax = fig.add_subplot(gs[1, n])
-        plot_stroke(ax, strokes_tar[n])
+    # for i in range(len(targets)):
+    #     strokes_tar.append(decoder.draw_from_z(np.expand_dims(targets[i],0)))
+    
+    # fig = plt.figure()
+    # N = 5
+    # gs = gridspec.GridSpec(2, N)
+    
+    # for n in range(N):
+    #     strokes(n).movie()
+    #     ax = fig.add_subplot(gs[0, n])
+    #     plot_stroke(ax, strokes[n])
+    #     ax = fig.add_subplot(gs[1, n])
+    #     plot_stroke(ax, strokes_tar[n])
 
-    # for i in range(1):
-    #     for j in range(5):
-    #         ax = fig.add_subplot(gs[i, j])
-    #         plot_stroke(ax, strokes[c])
-    #         c+=1
+    # # for i in range(1):
+    # #     for j in range(5):
+    # #         ax = fig.add_subplot(gs[i, j])
+    # #         plot_stroke(ax, strokes[c])
+    # #         c+=1
 
-    plt.show()
+    # plt.show()
 
 if __name__ == "__main__":
     tf.logging.set_verbosity(tf.logging.INFO)
